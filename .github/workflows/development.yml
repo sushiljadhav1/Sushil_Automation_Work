@@ -21,7 +21,8 @@ jobs:
       - name: configure aws credentials 
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_DEV  }}
+          role-to-assume: arn:aws:iam::263789222982:role/Aishik-Github-Test
+          #role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_DEV  }}
           role-session-name: samplerolesession
           aws-region: ${{ env.AWS_REGION }}
       
