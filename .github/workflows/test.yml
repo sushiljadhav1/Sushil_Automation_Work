@@ -1,0 +1,70 @@
+# Sample workflow to access AWS resources when workflow is tied to branch
+# The workflow Creates static website using aws s3
+name: AWS example workflow
+on:
+  push:
+    branches:
+      - test
+env:
+  BUCKET_NAME : "aishik-github-action-test"
+  AWS_REGION : "us-east-1"
+# permission can be added at job level or workflow level    
+permissions:
+      id-token: write
+      contents: read    # This is required for actions/checkout
+jobs:
+  S3PackageUpload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git clone the repository
+        uses: actions/checkout@v3
+      - name: configure aws credentials 
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME_TEST  }}
+          role-session-name: samplerolesession
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v20
+      
+      - name: List all added files
+        run: |
+          for file in ${{ steps.changed-files.outputs.added_files }}; 
+          do
+            if [[ $file == *"scripts"* ]];
+            then
+                echo "$file was added"
+                stack_name=$(echo $file | cut -d'/' -f 2 | cut -d'.' -f 1)-stack
+                aws cloudformation create-stack --stack-name $stack_name --template-body file://$file
+            fi
+          done
+          
+      - name: List all deleted files
+        run: |
+          for file in ${{ steps.changed-files.outputs.deleted_files }}; 
+          do
+            if [[ $file == *"scripts"* ]];
+            then
+                echo "$file was deleted"
+                stack_name=$(echo $file | cut -d'/' -f 2 | cut -d'.' -f 1)-stack
+                echo 'aws cloudformation delete-stack --stack-name $stack_name'
+                aws cloudformation delete-stack --stack-name $stack_name
+            fi
+          done
+          
+      - name: List all modified files
+        run: |
+          for file in ${{ steps.changed-files.outputs.modified_files }}; 
+          do
+            if [[ $file == *"scripts"* ]];
+            then
+                echo "$file was modified"
+                stack_name=$(echo $file | cut -d'/' -f 2 | cut -d'.' -f 1)-stack
+                echo 'aws cloudformation update-stack --stack-name $stack_name --template-body file://$file'
+                aws cloudformation update-stack --stack-name $stack_name --template-body file://$file
+            fi
+          done
+          
+    
