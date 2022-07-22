@@ -1,0 +1,29 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  (SO0006) - AWS WAF Security Automations v2.3.3: This AWS CloudFormation template helps
+  you provision the AWS WAF Security Automations stack without worrying about creating and
+  configuring the underlying AWS infrastructure.
+Resources:
+    RootBucket:
+        Type: 'AWS::S3::Bucket'
+        Properties:
+          BucketName: !Join [
+                                '', 
+                                [
+                                    'aishik-',
+                                    !Ref "AWS::AccountId",
+                                    '-test-01'
+                                ]
+                            ]
+          AccessControl: Private
+          PublicAccessBlockConfiguration:
+            BlockPublicAcls: true
+            BlockPublicPolicy: true
+            IgnorePublicAcls: true
+            RestrictPublicBuckets: true
+          VersioningConfiguration:
+            Status: Enabled
+Outputs:
+   RootBucketARN:
+    Description: 'Root bucket ARN'
+    Value: !GetAtt RootBucket.Arn
